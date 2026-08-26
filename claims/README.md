@@ -1,21 +1,21 @@
-# 📋 Scenario: AI Agents for Insurance Claims Processing
+# 📋 Cenário: Agentes de IA para Processamento de Sinistros
 
-## Scenario
+## Cenário
 
 ![scenario](./images/scenario.png)
 
-You work at **ClaimSight Insurance**, a property and auto insurance company that processes hundreds of claims daily. Each claim has associated metrics: document completeness, damage-vs-estimate consistency, fraud risk scoring, and policy coverage matching. Lately, fraudulent claims and processing delays have been costing the company millions.
+Você trabalha na **ClaimSight Insurance**, uma seguradora de propriedades e automóveis que processa centenas de sinistros diariamente. Cada sinistro tem métricas associadas: completude dos documentos, consistência entre dano e estimativa, pontuação de risco de fraude e correspondência com a cobertura da apólice. Ultimamente, sinistros fraudulentos e atrasos no processamento têm custado milhões à empresa.
 
-Your mission: **Build AI agents using Microsoft Foundry** that can triage incoming claims and make intelligent processing decisions — flagging suspicious claims for investigation while fast-tracking legitimate ones.
+Sua missão: **criar agentes de IA usando o Microsoft Foundry** que façam a triagem dos sinistros recebidos e tomem decisões inteligentes de processamento, sinalizando sinistros suspeitos para investigação e acelerando os legítimos.
 
 ![orchestration](./images/agentic-orchestration.png)
 
-You'll build two agents:
+Você criará dois agentes:
 
-1. **Claims Triage Agent** — Assesses claim metrics against acceptable thresholds and flags anomalies
-2. **Claims Decision Agent** — Takes flagged claims and recommends actions (approve, investigate, request documents, deny)
+1. **Claims Triage Agent** — Avalia as métricas dos sinistros em relação aos limites aceitáveis e sinaliza anomalias
+2. **Claims Decision Agent** — Recebe sinistros sinalizados e recomenda ações (aprovar, investigar, solicitar documentos, negar)
 
-## The Claims
+## Os sinistros
 
 | Claim | Type | Claimant | Status |
 |-------|------|----------|--------|
@@ -25,67 +25,67 @@ You'll build two agents:
 | CLM-004 | Property Fire | Sarah Williams | ✅ Normal |
 | CLM-005 | Auto Collision | David Okafor | ⚠️ Warning |
 
-## Prerequisites
+## Pré-requisitos
 
-- **Azure subscription** with Contributor access
-- **Python 3.10+** installed locally
+- **Assinatura do Azure** com acesso de Colaborador
+- **Python 3.10+** instalado localmente
 - **Azure CLI** (`az`) installed and logged in (`az login`)
-- A terminal (bash, PowerShell, or WSL)
-- ~20 minutes for infrastructure provisioning (run `challenge-0-setup/deploy.sh` from the repo root first!)
+- Um terminal (bash, PowerShell ou WSL)
+- Cerca de 20 minutos para provisionar a infraestrutura (execute `azd provision` primeiro na pasta `claims`!)
 
-## Structure
+## Estrutura
 
-All challenges are Python SDK-based. Challenge 4 also walks you through the Foundry portal to build and test the multi-agent workflow visually.
+Todos os desafios usam o SDK do Python. O Desafio 4 também orienta você pelo portal do Foundry para criar e testar visualmente o Workflow multiagente.
 
-## Challenges
+## Desafios
 
-| # | Challenge | Duration | What You'll Do |
+| # | Desafio | Duração | O que você fará |
 |---|-----------|----------|----------------|
-| 0 | [Setup](./challenge-0-setup/README.md) | 20 min | Provision resources, verify auth |
-| 1 | [Build Agents](./challenge-1-build/README.md) | 30 min | Create claims triage & decision agents |
-| 2 | [Monitor](./challenge-2-monitor/README.md) | 20 min | Enable tracing, explore App Insights |
-| 3 | [Evaluate](./challenge-3-evaluate/README.md) | 30 min | Run evaluations, interpret quality metrics |
-| 4 | [Workflow](./challenge-4-deploy/README.md) | 20 min | Build a multi-agent workflow: triage → decision → claims report |
+| 0 | [Configuração](./challenge-0-setup/README.md) | 20 min | Provisionar recursos, verificar autenticação |
+| 1 | [Criar agentes](./challenge-1-build/README.md) | 30 min | Criar agentes de triagem e decisão de sinistros |
+| 2 | [Monitorar](./challenge-2-monitor/README.md) | 20 min | Habilitar rastreamento, explorar o Application Insights |
+| 3 | [Avaliar](./challenge-3-evaluate/README.md) | 30 min | Executar avaliações, interpretar métricas de qualidade |
+| 4 | [Workflow](./challenge-4-deploy/README.md) | 20 min | Criar um fluxo multiagente: triagem → decisão → relatório de sinistros |
 
-## Why the Challenges Are in This Order
+## Por que os desafios estão nesta ordem
 
-**Build first.** Without precise instructions and real claim data, the agents can't make useful decisions. The Claims Triage Agent without `assess_claim` is pattern-matching on claim descriptions — it has no way to check actual fraud scores, document completeness ratios, or damage-estimate variance. Ambiguous system prompts mean inconsistent decisions: the same risk profile might get approved one day and flagged the next.
+**Crie primeiro.** Sem instruções precisas e dados reais de sinistros, os agentes não conseguem tomar decisões úteis. Sem `assess_claim`, o Claims Triage Agent apenas identifica padrões nas descrições dos sinistros: não há como verificar pontuações reais de fraude, índices de completude dos documentos ou variações entre danos e estimativas. Prompts de sistema ambíguos geram decisões inconsistentes: o mesmo perfil de risco pode ser aprovado em um dia e sinalizado no outro.
 
-**Then monitor.** Every decision the Claims Decision Agent makes needs to be traceable. For insurance claims, that's not optional — it's a business and regulatory requirement. Application Insights traces give you a complete record: what data the agent received, which tools it called, and exactly what it recommended. When an auditor asks why CLM-003 was sent for investigation, that trace is your answer.
+**Depois monitore.** Toda decisão tomada pelo Claims Decision Agent precisa ser rastreável. Para sinistros de seguros, isso não é opcional: é uma exigência comercial e regulatória. Os traces do Application Insights fornecem um registro completo: quais dados o agente recebeu, quais ferramentas chamou e exatamente o que recomendou. Quando um auditor perguntar por que CLM-003 foi enviado para investigação, esse trace será sua resposta.
 
-**Then evaluate.** Two claims with the same fraud score and document completeness should get the same recommendation. Evaluation gives you a repeatable way to check that they do — and catches it when a prompt update breaks that consistency before it affects real claims.
+**Depois avalie.** Dois sinistros com a mesma pontuação de fraude e a mesma completude documental devem receber a mesma recomendação. A avaliação oferece uma forma repetível de verificar isso e detecta quando uma atualização do prompt quebra essa consistência, antes que afete sinistros reais.
 
-**Then deploy.** The portal workflow connects triage to decision, processes a full claims batch, and produces a report that compliance teams can sign off on. That's the difference between a demo and something you'd put in front of an actual adjuster.
+**Depois implante.** O fluxo do portal conecta a triagem à decisão, processa um lote completo de sinistros e produz um relatório que as equipes de conformidade podem aprovar. Essa é a diferença entre uma demonstração e algo que você colocaria diante de um regulador de sinistros.
 
 
-## Architecture
+## Arquitetura
 
 ![architecture](./images/architecture.png)
 
 
-## Next Steps
+## Próximos passos
 
-Completing these challenges gives you a working multi-agent system with observability and evaluation in place. Here are the directions you can take it further:
+Ao concluir estes desafios, você terá um sistema multiagente funcional, com observabilidade e avaliação configuradas. Veja algumas direções para avançar:
 
-**Deploy as a hosted agent endpoint**
-Microsoft Foundry can host your agents as persistent, scalable API endpoints — no infrastructure to manage. Once hosted, your claims intake system can submit new claims directly to the Triage Agent and receive a structured decision (approve / investigate / request documents / deny) without any manual triage step.
+**Implantar como endpoint de agente hospedado**
+O Microsoft Foundry pode hospedar seus agentes como endpoints de API persistentes e escaláveis, sem infraestrutura para gerenciar. Depois de hospedado, seu sistema de entrada de sinistros poderá enviar novos sinistros diretamente ao Triage Agent e receber uma decisão estruturada (aprovar / investigar / solicitar documentos / negar), sem uma etapa manual de triagem.
 
-**Add more tools to your agents**
-The `assess_claim` function in this lab uses local mock data. In production you'd replace it with tools that call real systems:
-- A `fetch_policy` tool querying your policy management system for the exact coverage terms, exclusions, and limits applicable to a specific claim
-- A `check_fraud_database` tool querying a fraud intelligence service for known patterns matching the claimant's history
-- A `request_documents` tool that automatically triggers a document request workflow in your DMS when the agent recommends it
+**Adicionar mais ferramentas aos seus agentes**
+A função `assess_claim` neste laboratório usa dados simulados locais. Em produção, você a substituiria por ferramentas que chamam sistemas reais:
+- Uma ferramenta `fetch_policy` que consulta seu sistema de gerenciamento de apólices em busca dos termos de cobertura, exclusões e limites exatos aplicáveis a um sinistro específico
+- Uma ferramenta `check_fraud_database` que consulta um serviço de inteligência contra fraudes em busca de padrões conhecidos correspondentes ao histórico do segurado
+- Uma ferramenta `request_documents` que aciona automaticamente um fluxo de solicitação de documentos no seu DMS quando o agente fizer essa recomendação
 
-**Build a knowledge base**
-Upload ClaimSight's insurance policy documents, regulatory compliance guidelines, and fraud pattern library to a Microsoft Foundry knowledge base. Attach it to the Claims Decision Agent as a File Search tool so its recommendations cite actual policy language — producing decisions that are auditable and defensible to regulators.
+**Criar uma base de conhecimento**
+Carregue os documentos de apólices da ClaimSight, as diretrizes de conformidade regulatória e a biblioteca de padrões de fraude em uma base de conhecimento do Microsoft Foundry. Anexe-a ao Claims Decision Agent como uma ferramenta de File Search para que suas recomendações citem a linguagem real das apólices, produzindo decisões auditáveis e defensáveis perante os órgãos reguladores.
 
-**Integrate evaluations into CI/CD**
-Run your evaluation dataset automatically on every pull request or deployment. If the coherence or relevance score drops below a threshold (e.g. 3.5 out of 5), block the release. In a regulated industry, this isn't just good practice — it's the kind of quality gate that compliance and audit teams expect to see documented.
+**Integrar avaliações ao CI/CD**
+Execute seu conjunto de dados de avaliação automaticamente em cada pull request ou implantação. Se a pontuação de coerência ou relevância cair abaixo de um limite (por exemplo, 3,5 de 5), bloqueie a versão. Em um setor regulado, isso não é apenas uma boa prática: é o tipo de gate de qualidade que as equipes de conformidade e auditoria esperam ver documentado.
 
-**Explore advanced agent patterns**
-- **Parallelise** triage across all incoming claims simultaneously instead of sequentially
-- **Add confidence thresholds** — if the Triage Agent's fraud risk assessment falls in an ambiguous range, route to a senior adjuster rather than passing to the Decision Agent automatically
-- **Human-in-the-loop** — for high-value claims (above a configurable threshold), always require human adjuster sign-off before the Decision Agent's recommendation is acted on
+**Explorar padrões avançados de agentes**
+- **Paralelize** a triagem de todos os sinistros recebidos simultaneamente, em vez de sequencialmente
+- **Adicionar limites de confiança**: se a avaliação de risco de fraude do Triage Agent ficar em uma faixa ambígua, encaminhe-a a um regulador sênior em vez de passá-la automaticamente ao Decision Agent
+- **Humano no circuito**: para sinistros de alto valor (acima de um limite configurável), sempre exija a aprovação de um regulador humano antes de executar a recomendação do Decision Agent
 
-**Fine-tune for your domain**
-Use your evaluation results to identify systematic errors — claim types the agent consistently misjudges or fraud indicators it underweights. Use those cases to refine system prompts, add targeted few-shot examples, or fine-tune the underlying model on ClaimSight's historical claim decisions.
+**Ajustar para seu domínio**
+Use os resultados das avaliações para identificar erros sistemáticos, como tipos de sinistro que o agente julga incorretamente com frequência ou indicadores de fraude aos quais atribui pouco peso. Use esses casos para refinar os prompts de sistema, adicionar exemplos few-shot direcionados ou ajustar o modelo subjacente com base nas decisões históricas de sinistros da ClaimSight.

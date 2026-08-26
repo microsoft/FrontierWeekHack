@@ -1,43 +1,43 @@
-# Challenge 3: Evaluate
+# Desafio 3: Avaliar
 
-Time: ~30 minutes
+Tempo: ~30 minutos
 
-## Objectives
+## Objetivos
 
-By the end of this challenge, you will have:
+Ao final deste desafio, você terá:
 
-- ✅ Run a systematic evaluation of your agents against a test dataset
-- ✅ Used built-in evaluators (coherence, fluency) to measure quality
-- ✅ Interpreted evaluation metrics and identified areas for improvement
-- ✅ Understanding of how to integrate evaluations into a CI/CD pipeline
+- ✅ Executado uma avaliação sistemática dos seus agentes com um conjunto de dados de teste
+- ✅ Usado avaliadores integrados (coerência, fluência) para medir a qualidade
+- ✅ Interpretado métricas de avaliação e identificado áreas de melhoria
+- ✅ Entendido como integrar avaliações a um pipeline de CI/CD
 
 ![evaluate](./images/evaluate.png)
 
-## Context
+## Contexto
 
-Monitoring tells you **what's happening** (latency, errors, token usage). Evaluation tells you **if the decisions are actually correct**.
+O monitoramento informa **o que está acontecendo** (latência, erros, uso de tokens). A avaliação informa **se as decisões estão realmente corretas**.
 
-You have a dataset of 10 test cases — each with claim metrics and the expected correct output (classification + recommended action). You'll run your agents against these test cases and measure how well they perform using LLM-as-judge scoring.
+Você tem um conjunto de dados com 10 casos de teste, cada um com métricas do sinistro e a saída correta esperada (classificação + ação recomendada). Você executará seus agentes nesses casos e medirá o desempenho usando pontuação com LLM como juiz.
 
-## Why Evaluate?
+## Por que avaliar?
 
-Monitoring tells you your agents are *running* — evaluation tells you they're doing the *right thing*. These are fundamentally different questions.
+O monitoramento informa que seus agentes estão *executando*; a avaliação informa se estão fazendo a *coisa certa*. Essas são perguntas fundamentalmente diferentes.
 
-Monitoring captures **operational signals**: latency, token count, error rates, uptime. These tell you *how* the system behaves mechanically. Evaluation captures **quality signals**: are the agent's outputs correct, relevant, coherent, and consistent with expected outcomes? These tell you *whether* the system is actually doing its job.
+O monitoramento captura **sinais operacionais**: latência, contagem de tokens, taxas de erro e disponibilidade. Eles mostram *como* o sistema se comporta mecanicamente. A avaliação captura **sinais de qualidade**: as saídas do agente são corretas, relevantes, coerentes e consistentes com os resultados esperados? Eles mostram *se* o sistema está realmente cumprindo sua função.
 
-Without systematic evaluation, you're relying on spot-checks — reading a handful of responses and judging them subjectively. This doesn't scale, isn't repeatable, and can't catch regressions when you update a prompt or switch models. Evaluation gives you a measurable baseline: a score you can track over time and compare across versions.
+Sem avaliação sistemática, você depende de verificações pontuais: lê algumas respostas e as julga subjetivamente. Isso não escala, não é repetível e não detecta regressões quando você atualiza um prompt ou troca de modelo. A avaliação fornece uma linha de base mensurável: uma pontuação que você pode acompanhar ao longo do tempo e comparar entre versões.
 
-Evaluation also surfaces issues that monitoring is blind to. An agent that always responds quickly and without errors but consistently approves high-risk claims — or flags legitimate claims for unnecessary investigation — looks perfectly healthy to monitoring. Evaluation catches it immediately.
+A avaliação também revela problemas que o monitoramento não enxerga. Um agente que sempre responde rapidamente e sem erros, mas aprova consistentemente sinistros de alto risco ou sinaliza sinistros legítimos para investigação desnecessária, parece perfeitamente saudável no monitoramento. A avaliação detecta isso imediatamente.
 
-For production AI, evaluations should run:
+Para IA em produção, as avaliações devem ser executadas:
 
-- **Before deployment** — establish a quality baseline and gate releases on minimum scores
-- **After any change** — to system prompts, models, tools, or policy documents in the knowledge base
-- **On a schedule** — to detect drift as fraud patterns evolve or new claim types emerge
+- **Antes da implantação**: estabeleça uma linha de base de qualidade e condicione as versões a pontuações mínimas
+- **Após qualquer alteração**: em prompts de sistema, modelos, ferramentas ou documentos de política na base de conhecimento
+- **Em uma programação**: para detectar desvios à medida que os padrões de fraude evoluem ou novos tipos de sinistro surgem
 
 For ClaimSight specifically: an agent that approves CLM-001 (fraud risk score 0.87, document completeness 45%) because it generated a coherent-sounding rationale is a direct financial risk. Monitoring sees a successful response. Only evaluation — comparing the output against the expected "investigate" decision — catches the mistake.
 
-## The Evaluation Dataset
+## O conjunto de dados de avaliação
 
 The dataset lives at [challenge-4-deploy/evaluation_dataset.json](../challenge-4-deploy/evaluation_dataset.json) — it contains:
 
@@ -45,28 +45,28 @@ The dataset lives at [challenge-4-deploy/evaluation_dataset.json](../challenge-4
 - Each has an `input` (what you send to the agent)
 - Each has an `expected_output` (the correct classification and action)
 
-## About the Evaluators
+## Sobre os avaliadores
 
-Microsoft Foundry uses an **LLM-as-judge** approach — a separate model reads each agent response alongside the input and ground truth, then scores it on a 1–5 scale. You'll use two built-in evaluators:
+O Microsoft Foundry usa uma abordagem de **LLM como juiz**: um modelo separado lê cada resposta do agente junto com a entrada e a verdade de referência, e então atribui uma pontuação de 1 a 5. Você usará dois avaliadores integrados:
 
-- **Coherence** — measures whether the agent's response is logically structured and internally consistent. A score of 5 means the output is clear, well-organised, and flows naturally. A low score means the response is contradictory, jumbled, or hard to follow. For a claims agent this catches things like recommending approval while simultaneously flagging a high fraud risk score.
+- **Coerência**: mede se a resposta do agente é logicamente estruturada e internamente consistente. Uma pontuação 5 significa que a saída é clara, bem organizada e flui naturalmente. Uma pontuação baixa indica uma resposta contraditória, confusa ou difícil de acompanhar. Para um agente de sinistros, isso detecta situações como recomendar aprovação e, ao mesmo tempo, sinalizar uma pontuação alta de risco de fraude.
 
-- **Fluency** — measures the grammatical and linguistic quality of the agent's response. A score of 5 means the output is well-written, natural, and easy to read. A low score means the response is awkwardly phrased, grammatically broken, or hard to parse — which undermines trust in the decision even when the underlying assessment is correct.
+- **Fluência**: mede a qualidade gramatical e linguística da resposta do agente. Uma pontuação 5 significa que a saída é bem escrita, natural e fácil de ler. Uma pontuação baixa indica uma resposta com formulação estranha, erros gramaticais ou difícil de interpretar, o que reduz a confiança na decisão mesmo quando a avaliação subjacente está correta.
 
 These two scores together give you a quick signal on output quality. When you see a low coherence score, look at the agent's system prompt structure. When you see a low fluency score, look at how the agent phrases its output and whether its system prompt encourages clear, well-formed responses.
 
-## Get Started
+## Primeiros passos
 
 The evaluation dataset has already been prepared for you as [eval_portal.jsonl](./eval_portal.jsonl) — 10 insurance claim scenarios ready to upload.
 
 ---
 
-### Step 1: Open the Evaluation tab
+### Etapa 1: Abrir a guia de avaliação
 
 1. Go to the [Microsoft Foundry portal](https://ai.azure.com/nextgen) → your project
 2. On the top bar → **Build** → **Evaluations** → **Create**
 
-### Step 2: Configure the evaluation
+### Etapa 2: Configurar a avaliação
 
 3. Select **Agent** as the evaluation target
 4. Choose `claims-triage-agent` from the dropdown
@@ -78,7 +78,7 @@ You must enter a dataset name first — the upload stays disabled until you do. 
 9. Leave the Evaluation Name as is or configure to your liking.
 10. Submit your Evaluation. This will take some time to run.
 
-### Step 3: View results
+### Etapa 3: Exibir resultados
 
 Results appear in the **Evaluate** tab within a few minutes. Click the run name to open the results.
 
@@ -89,9 +89,9 @@ There are two ways to read the results, and they answer different questions:
 
 ---
 
-## Success Criteria
+## Critérios de sucesso
 
-- [ ] Evaluation runs against all 10 test cases without errors
-- [ ] You can see per-row scores for coherence and fluency
-- [ ] You've identified at least one case where the agent could improve
-- [ ] You understand the difference between aggregate metrics and per-row analysis
+- [ ] A avaliação é executada nos 10 casos de teste sem erros
+- [ ] Você consegue ver as pontuações por linha de coerência e fluência
+- [ ] Você identificou pelo menos um caso em que o agente pode melhorar
+- [ ] Você entende a diferença entre métricas agregadas e análise por linha

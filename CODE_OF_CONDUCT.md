@@ -1,10 +1,10 @@
-# Microsoft Open Source Code of Conduct
+# Código de Conduta de Código Aberto da Microsoft
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+Este projeto adotou o [Código de Conduta de Código Aberto da Microsoft](https://opensource.microsoft.com/codeofconduct/).
 
-Resources:
+Recursos:
 
-- [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/)
-- [Microsoft Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
-- Contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with questions or concerns
-- Employees can reach out at [aka.ms/opensource/moderation-support](https://aka.ms/opensource/moderation-support)
+- [Código de Conduta de Código Aberto da Microsoft](https://opensource.microsoft.com/codeofconduct/)
+- [Perguntas frequentes sobre o Código de Conduta da Microsoft](https://opensource.microsoft.com/codeofconduct/faq/)
+- Entre em contato com [opencode@microsoft.com](mailto:opencode@microsoft.com) em caso de dúvidas ou preocupações
+- Funcionários podem entrar em contato pelo endereço [aka.ms/opensource/moderation-support](https://aka.ms/opensource/moderation-support)

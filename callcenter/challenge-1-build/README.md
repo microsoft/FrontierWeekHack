@@ -1,92 +1,92 @@
-# Challenge 1: Build Agents
+# Desafio 1: Criar agentes
 
-Time: ~30 minutes
+Tempo: ~30 minutos
 
-## Objectives
+## Objetivos
 
-By the end of this challenge, you will have:
+Ao final deste desafio, você terá:
 
-- ✅ An **Intent Classification Agent** that analyzes call summaries and categorizes customer intent
-- ✅ A **Resolution Advisor Agent** that recommends optimal handling strategies
-- ✅ Both agents tested against real call center data
+- ✅ Um **Agente de Classificação de Intenção** que analisa resumos de chamadas e categoriza a intenção do cliente
+- ✅ Um **Agente Consultor de Resolução** que recomenda estratégias ideais de atendimento
+- ✅ Os dois agentes testados com dados reais da central de atendimento
 
 ![build](./images/build.png)
 
-## Context
+## Contexto
 
-NovaTel Communications receives hundreds of calls daily. Each call has a summary, customer history, and account context. Your agents need to:
+A NovaTel Communications recebe centenas de chamadas diariamente. Cada chamada tem um resumo, o histórico do cliente e o contexto da conta. Seus agentes precisam:
 
-1. **Intent Classification**: Analyze the call to determine what the customer needs (billing dispute, tech issue, cancellation risk, upsell opportunity, etc.)
-2. **Resolution Advisory**: Given a classified intent + customer context, recommend the best resolution path with scripts, escalation decisions, and available offers
+1. **Classificação de intenção**: analisar a chamada para determinar o que o cliente precisa (contestação de cobrança, problema técnico, risco de cancelamento, oportunidade de upsell etc.)
+2. **Consultoria de resolução**: dada uma intenção classificada e o contexto do cliente, recomendar o melhor caminho de resolução com scripts, decisões de encaminhamento e ofertas disponíveis
 
-Check out [call_data.json](./call_data.json) to see today's incoming calls.
+Consulte [call_data.json](./call_data.json) para ver as chamadas recebidas hoje.
 
-## Portal or SDK?
+## Portal ou SDK?
 
-Microsoft Foundry gives you two ways to build agents. The **Foundry portal** ([ai.azure.com/nextgen](https://ai.azure.com/nextgen)) provides a visual, no-code interface where you can create agents, attach tools, and test them interactively in a playground — great for exploration and rapid prototyping. The **Azure AI Agents SDK** gives you full programmatic control: you define agent behavior, tools, and orchestration logic in Python, which makes it easy to version, test, and integrate into automated pipelines.
+O Microsoft Foundry oferece duas maneiras de criar agentes. O **portal do Foundry** ([ai.azure.com/nextgen](https://ai.azure.com/nextgen)) fornece uma interface visual sem código na qual você pode criar agentes, anexar ferramentas e testá-los interativamente em um playground — ideal para exploração e prototipagem rápida. O **Azure AI Agents SDK** oferece controle programático completo: você define o comportamento dos agentes, as ferramentas e a lógica de orquestração em Python, facilitando o versionamento, os testes e a integração a pipelines automatizados.
 
 ![foundry](./images/foundry.png)
 
-In this challenge we use the **SDK**. The code in [agents.py](./agents.py) creates both agents, registers their tools, and runs them against every call in `call_data.json` — all from the terminal. After the script runs, both agents will also be visible in the portal under **Agents**, so you can inspect them, tweak their instructions, and test them interactively without touching any code.
+Neste desafio usamos o **SDK**. O código em [agents.py](./agents.py) cria os dois agentes, registra suas ferramentas e os executa com cada chamada em `call_data.json` — tudo pelo terminal. Depois que o script for executado, os dois agentes também estarão visíveis no portal em **Agents**, para que você possa inspecioná-los, ajustar suas instruções e testá-los interativamente sem alterar código.
 
-## Agents and Tools
+## Agentes e ferramentas
 
-### What is an agent?
+### O que é um agente?
 
-An agent in Microsoft Foundry is a persistent, stateful AI assistant backed by a large language model. Unlike a plain API call — where you send a prompt and get a single response — an agent maintains a **conversation thread**, can **invoke tools autonomously**, and **retains context** across multiple turns. You configure it with:
+Um agente no Microsoft Foundry é um assistente de IA persistente e com estado, apoiado por um modelo de linguagem grande. Diferentemente de uma chamada de API simples — na qual você envia um prompt e recebe uma única resposta — um agente mantém uma **thread de conversa**, pode **invocar ferramentas de forma autônoma** e **mantém o contexto** entre várias interações. Você o configura com:
 
-- A **name** and **model** (e.g. `gpt-5.4`)
-- A **system prompt** — instructions that define its role, personality, and constraints
-- One or more **tools** it can call when it needs information or actions beyond its training data
+- Um **nome** e um **modelo** (por exemplo, `gpt-5.4`)
+- Um **prompt do sistema** — instruções que definem sua função, personalidade e restrições
+- Uma ou mais **ferramentas** que ele pode chamar quando precisa de informações ou ações além dos seus dados de treinamento
 
-Agents are managed resources in your Foundry project. They persist between runs, appear in the portal under **Agents**, and can be versioned, shared, and reused.
+Os agentes são recursos gerenciados no seu projeto do Foundry. Eles persistem entre execuções, aparecem no portal em **Agents** e podem ser versionados, compartilhados e reutilizados.
 
-### What are tools?
+### O que são ferramentas?
 
-Tools extend an agent's capabilities beyond pure language generation. When the model decides it needs information it doesn't have in its context window, it emits a **tool call** — a structured JSON request specifying the tool name and arguments. The SDK intercepts this, runs the corresponding Python function, and feeds the result back to the model. This reasoning loop continues until the agent produces a final response.
+As ferramentas ampliam as capacidades de um agente para além da geração de linguagem. Quando o modelo decide que precisa de uma informação que não está na janela de contexto, ele emite uma **chamada de ferramenta** — uma solicitação JSON estruturada que especifica o nome da ferramenta e seus argumentos. O SDK intercepta essa solicitação, executa a função Python correspondente e devolve o resultado ao modelo. Esse ciclo de raciocínio continua até o agente produzir uma resposta final.
 
-From the model's perspective, tools are described by a **JSON schema** (name, description, parameters). The model reads these descriptions and decides autonomously when and how to call them — you never hard-code the decision logic.
+Do ponto de vista do modelo, as ferramentas são descritas por um **esquema JSON** (nome, descrição e parâmetros). O modelo lê essas descrições e decide autonomamente quando e como chamá-las — você nunca codifica a lógica de decisão diretamente.
 
-### What tools can you add?
+### Quais ferramentas você pode adicionar?
 
-| Tool type | What it does | Best for |
+| Tipo de ferramenta | O que ela faz | Melhor para |
 |-----------|-------------|----------|
-| **Function** | Calls a local Python function you define | Any custom logic: database lookups, APIs, calculations |
-| **Code Interpreter** | Lets the agent write and execute Python in a sandbox | Data analysis, chart generation, file processing |
-| **File Search** | Semantic search over a Microsoft Foundry knowledge base | Policy docs, manuals, historical records |
-| **Bing Search** | Live web search | Real-time information, news |
-| **Azure AI Search** | Queries an Azure Search index | Grounded retrieval over your own data at scale |
+| **Function** | Chama uma função Python local que você define | Qualquer lógica personalizada: consultas a bancos de dados, APIs e cálculos |
+| **Code Interpreter** | Permite que o agente escreva e execute Python em um sandbox | Análise de dados, geração de gráficos e processamento de arquivos |
+| **File Search** | Pesquisa semântica em uma base de conhecimento do Microsoft Foundry | Documentos de políticas, manuais e registros históricos |
+| **Bing Search** | Pesquisa na web em tempo real | Informações em tempo real e notícias |
+| **Azure AI Search** | Consulta um índice do Azure Search | Recuperação fundamentada em seus próprios dados em escala |
 
-#### Vector databases and Microsoft Foundry knowledge bases
+#### Bancos de dados vetoriais e bases de conhecimento do Microsoft Foundry
 
-When your agent needs to answer questions grounded in a large body of documents — policy manuals, product specs, historical records — you need a **vector database**. Unlike keyword search, a vector database converts text into numerical embeddings and finds semantically similar passages at query time. This lets the agent ask a natural-language question and retrieve the right content even when the exact words don’t appear in the query.
+Quando seu agente precisa responder a perguntas fundamentadas em um grande conjunto de documentos — manuais de políticas, especificações de produtos e registros históricos — você precisa de um **banco de dados vetorial**. Diferentemente da pesquisa por palavras-chave, um banco vetorial converte texto em embeddings numéricos e encontra trechos semanticamente semelhantes no momento da consulta. Assim, o agente pode fazer uma pergunta em linguagem natural e recuperar o conteúdo correto mesmo quando as palavras exatas não aparecem na consulta.
 
-**Microsoft Foundry** includes a built-in knowledge base backed by a vector store. You upload documents (PDFs, Word files, plain text) and the service automatically chunks, embeds, and indexes them. When you attach this knowledge base to an agent as a **File Search** tool, the agent queries it at inference time — pulling relevant passages into its context before generating a response, so its answers are grounded in your actual documents rather than model training data alone.
+O **Microsoft Foundry** inclui uma base de conhecimento integrada apoiada por um armazenamento vetorial. Você carrega documentos (PDFs, arquivos do Word e texto simples), e o serviço os divide em trechos, gera embeddings e cria o índice automaticamente. Quando você anexa essa base de conhecimento a um agente como ferramenta de **File Search**, o agente a consulta durante a inferência — trazendo trechos relevantes para o contexto antes de gerar uma resposta, para que suas respostas se baseiem nos seus documentos reais, e não apenas nos dados de treinamento do modelo.
 
-For the NovaTel call center, useful knowledge bases would include:
+Para a central de atendimento da NovaTel, bases de conhecimento úteis incluiriam:
 
-- **Customer service policy manual** — refund thresholds, escalation rules, retention offer eligibility by plan tier
-- **Product & plan documentation** — features by tier, billing cycles, device return windows, roaming policies
-- **Resolution scripts** — approved language for billing disputes, cancellation saves, and upsell conversations
+- **Manual de políticas de atendimento ao cliente** — limites de reembolso, regras de encaminhamento e elegibilidade de ofertas de retenção por nível do plano
+- **Documentação de produtos e planos** — recursos por nível, ciclos de cobrança, prazos para devolução de dispositivos e políticas de roaming
+- **Scripts de resolução** — linguagem aprovada para contestações de cobrança, retenção em cancelamentos e conversas de upsell
 
-With this in place, the **Resolution Advisor Agent** could query “what retention offers apply to a Premium customer of 3+ years wanting to cancel?” and retrieve the exact offer details from the playbook — rather than hallucinating plausible-sounding but potentially incorrect policies.
+Com isso, o **Agente Consultor de Resolução** poderia consultar “quais ofertas de retenção se aplicam a um cliente Premium com mais de 3 anos que quer cancelar?” e recuperar os detalhes exatos da oferta no manual — em vez de inventar políticas plausíveis, mas potencialmente incorretas.
 
-In this challenge the agents use **function tools**. The **Intent Classification Agent** uses `lookup_customer` to pull account history and customer tier before deciding intent. Without this tool, the agent would have to guess from the call summary alone — with it, every classification is grounded in real account data.
+Neste desafio, os agentes usam **ferramentas de função**. O **Agente de Classificação de Intenção** usa `lookup_customer` para obter o histórico da conta e o nível do cliente antes de decidir a intenção. Sem essa ferramenta, o agente teria de adivinhar apenas a partir do resumo da chamada — com ela, toda classificação se baseia em dados reais da conta.
 
-## Get Started
+## Comece agora
 
-Open [agents.py](./agents.py) and review the implementation of both agents.
+Abra [agents.py](./agents.py) e revise a implementação dos dois agentes.
 
 ```bash
 cd callcenter/challenge-1-build
 python agents.py
 ```
 
-As the script runs, watch the terminal closely — you'll see each agent being created, then each call from `call_data.json` being sent through the **Intent Classification Agent** first, and its output handed off to the **Resolution Advisor Agent**. You'll see the raw agent responses printed for every call, giving you a live view of how the two agents collaborate. Once it completes, head to the [Microsoft Foundry portal](https://ai.azure.com/nextgen), open your project, and navigate to **Agents** in the left sidebar — hit **Refresh** if the agents don't appear immediately, as it can take a few seconds for newly created agents to show up in the portal.
+Enquanto o script é executado, observe atentamente o terminal — você verá cada agente sendo criado e, em seguida, cada chamada de `call_data.json` passando primeiro pelo **Agente de Classificação de Intenção**, com sua saída sendo encaminhada ao **Agente Consultor de Resolução**. As respostas brutas dos agentes serão exibidas para cada chamada, oferecendo uma visão ao vivo de como eles colaboram. Quando terminar, acesse o [portal do Microsoft Foundry](https://ai.azure.com/nextgen), abra seu projeto e navegue até **Agents** na barra lateral esquerda — clique em **Refresh** se os agentes não aparecerem imediatamente, pois pode levar alguns segundos para que novos agentes sejam exibidos no portal.
 
 
-## Success Criteria
+## Critérios de sucesso
 
-- [ ] Intent Classification Agent correctly identifies all 6 intent types across 7 calls
-- [ ] Resolution Advisor provides actionable recommendations with scripts and escalation decisions
-- [ ] Security concerns are always escalated; billing disputes offer appropriate credits
+- [ ] O Agente de Classificação de Intenção identifica corretamente os 6 tipos de intenção nas 7 chamadas
+- [ ] O Consultor de Resolução fornece recomendações acionáveis com scripts e decisões de encaminhamento
+- [ ] As preocupações de segurança sempre são encaminhadas; as contestações de cobrança oferecem créditos apropriados

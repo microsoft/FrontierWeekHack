@@ -1,8 +1,8 @@
 site_name: Build AI Agents with Microsoft Foundry
 site_description: A hands-on lab teaching you to build, monitor, evaluate, and orchestrate AI agents using the Microsoft Foundry SDK.
-site_url: https://microsoft.github.io/FrontierWeekHack/
-repo_url: https://github.com/microsoft/FrontierWeekHack
-repo_name: microsoft/FrontierWeekHack
+site_url: https://diegodocs.github.io/FrontierWeekHack/
+repo_url: https://github.com/diegodocs/FrontierWeekHack
+repo_name: diegodocs/FrontierWeekHack
 
 theme:
   name: material

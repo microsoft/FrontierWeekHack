@@ -1,138 +1,138 @@
-# Challenge 2: Monitor with Application Insights
+# Desafio 2: Monitorar com o Application Insights
 
-Time: ~20 minutes
+Tempo: ~20 minutos
 
-## Objectives
+## Objetivos
 
-By the end of this challenge, you will have:
+Ao final deste desafio, você terá:
 
-- ✅ GenAI tracing enabled for your Foundry agents
-- ✅ Agent interactions visible as traces in Application Insights
-- ✅ Understanding of how to debug agent behaviour in production
+- ✅ Tracing de GenAI habilitado para seus agentes do Foundry
+- ✅ Interações dos agentes visíveis como traces no Application Insights
+- ✅ Compreensão de como depurar o comportamento dos agentes em produção
 
 ![monitor](./images/monitor.png)
 
-## Context
+## Contexto
 
-Your agents work — but how do you know they're working **well**? What if an agent misclassifies a security concern as a billing dispute? What if resolution recommendations take too long to generate during peak hours?
+Seus agentes funcionam — mas como saber se estão funcionando **bem**? E se um agente classificar incorretamente uma preocupação de segurança como uma contestação de cobrança? E se as recomendações de resolução demorarem demais para serem geradas nos horários de pico?
 
-**Application Insights** with **GenAI tracing** gives you:
+O **Application Insights** com **tracing de GenAI** oferece:
 
-- Full trace of every agent interaction (user message → model call → tool calls → response)
-- Token usage per request
-- Latency breakdown (network, model inference, tool execution)
-- Error tracking and alerting
+- Trace completo de cada interação do agente (mensagem do usuário → chamada do modelo → chamadas de ferramentas → resposta)
+- Uso de tokens por solicitação
+- Detalhamento da latência (rede, inferência do modelo e execução de ferramentas)
+- Rastreamento de erros e alertas
 
-## Why Monitor?
+## Por que monitorar?
 
-AI agents behave differently from traditional software. A conventional API either returns the right data or throws an error — you can test it deterministically. An agent's output is probabilistic: the same input can produce subtly different responses on each run, tool calls can succeed but return unexpected data, and failures can be silent (the agent responds confidently but incorrectly). Without observability, these issues are invisible until a user reports them.
+Agentes de IA se comportam de maneira diferente de softwares tradicionais. Uma API convencional retorna os dados corretos ou lança um erro — você pode testá-la de forma determinística. A saída de um agente é probabilística: a mesma entrada pode produzir respostas sutilmente diferentes a cada execução, chamadas de ferramentas podem ter sucesso e ainda assim retornar dados inesperados, e as falhas podem ser silenciosas (o agente responde com confiança, mas incorretamente). Sem observabilidade, esses problemas ficam invisíveis até que um usuário os relate.
 
-Monitoring serves three critical functions for AI agents:
+O monitoramento cumpre três funções críticas para agentes de IA:
 
-- **Reliability** — Detect when agents stop working (tool call failures, timeouts, empty responses) before users do
-- **Performance** — Track latency and token usage over time, catch regressions when you update a system prompt, and right-size your deployments for cost efficiency
-- **Debugging** — When something goes wrong, distributed traces give you a complete record of what the model reasoned, what tools were called, what they returned, and exactly where the chain broke
+- **Confiabilidade** — Detectar quando os agentes param de funcionar (falhas nas chamadas de ferramentas, timeouts e respostas vazias) antes dos usuários
+- **Desempenho** — Acompanhar latência e uso de tokens ao longo do tempo, detectar regressões ao atualizar um prompt do sistema e dimensionar corretamente suas implantações para obter eficiência de custos
+- **Depuração** — Quando algo dá errado, traces distribuídos fornecem um registro completo do raciocínio do modelo, das ferramentas chamadas, do que elas retornaram e de exatamente onde a cadeia foi interrompida
 
-For production AI systems, monitoring is the foundation that makes improvement possible. You can't fix what you can't see.
+Para sistemas de IA em produção, o monitoramento é a base que torna a melhoria possível. Você não pode corrigir o que não consegue ver.
 
-For the NovaTel call center specifically: a misclassified security concern (CALL-007) routed to the billing queue means a hacked account goes unaddressed for hours. A latency spike during the morning rush means agents can't keep pace with the call queue. Without traces, you'd never know which specific tool call or model reasoning step caused the problem — or even that it happened.
+Especificamente para a central de atendimento da NovaTel: uma preocupação de segurança classificada incorretamente (CALL-007) e encaminhada à fila de cobrança significa que uma conta invadida ficará sem atendimento por horas. Um pico de latência durante o movimento da manhã significa que os agentes não conseguirão acompanhar a fila de chamadas. Sem traces, você nunca saberia qual chamada de ferramenta ou etapa de raciocínio do modelo causou o problema — ou sequer que ele ocorreu.
 
-## Portal or SDK?
+## Portal ou SDK?
 
-Microsoft Foundry gives you two ways to monitor agents. The **Foundry portal** ([ai.azure.com/nextgen](https://ai.azure.com/nextgen)) has a built-in **Tracing** view where you can browse agent interactions, inspect individual spans, and see token usage and latency — no code required. **Application Insights** (via the Azure portal) gives you deeper analytics: Kusto queries, custom dashboards, and alerting rules.
+O Microsoft Foundry oferece duas maneiras de monitorar agentes. O **portal do Foundry** ([ai.azure.com/nextgen](https://ai.azure.com/nextgen)) tem uma exibição integrada de **Tracing**, na qual você pode navegar pelas interações dos agentes, inspecionar spans individuais e ver o uso de tokens e a latência — sem precisar escrever código. O **Application Insights** (pelo portal do Azure) fornece análises mais profundas: consultas Kusto, dashboards personalizados e regras de alerta.
 
-In this challenge we use the **SDK** — `monitor.py` instruments your agents so every interaction is automatically captured as a distributed trace. Once the script runs, you'll explore those traces using both portal options, seeing how each one presents the same data differently.
+Neste desafio usamos o **SDK** — `monitor.py` instrumenta seus agentes para que cada interação seja capturada automaticamente como um trace distribuído. Depois que o script for executado, você explorará esses traces usando as duas opções de portal e verá como cada uma apresenta os mesmos dados de maneira diferente.
 
-## Prerequisites
+## Pré-requisitos
 
-Make sure your `.env` has:
+Certifique-se de que seu `.env` tenha:
 ```
 AZURE_EXPERIMENTAL_ENABLE_GENAI_TRACING=true
 OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=xxx;...
 ```
 
-## Connect Application Insights to the Portal
+## Conectar o Application Insights ao portal
 
-The deploy script automatically links Application Insights to your Foundry project. To confirm it worked, open the [Microsoft Foundry portal](https://ai.azure.com/nextgen), navigate to your project, and click **Tracing** in the left sidebar — you should see the Application Insights resource already connected.
+O script de implantação vincula automaticamente o Application Insights ao seu projeto do Foundry. Para confirmar que funcionou, abra o [portal do Microsoft Foundry](https://ai.azure.com/nextgen), navegue até seu projeto e clique em **Tracing** na barra lateral esquerda — você deverá ver o recurso do Application Insights já conectado.
 
-If you see a **"Create or connect an App Insights resource to get started"** banner, the automatic connection was blocked by a tenant policy. Fix it in one click: click **Connect**, select the `foundry-hack-insights-<suffix>` resource from the dropdown, and confirm. You only need to do this once.
+Se você vir um banner **"Create or connect an App Insights resource to get started"**, a conexão automática foi bloqueada por uma política do tenant. Corrija com um clique: clique em **Connect**, selecione o recurso `foundry-hack-insights-<suffix>` no menu suspenso e confirme. Você só precisa fazer isso uma vez.
 
-## Get Started
+## Comece agora
 
-Open [monitor.py](./monitor.py) and review the tracing setup.
+Abra [monitor.py](./monitor.py) e revise a configuração do tracing.
 
 ```bash
 cd callcenter/challenge-2-monitor
 python monitor.py
 ```
 
-Once the script finishes, your traces are live. Explore them in the Azure Portal.
+Quando o script terminar, seus traces estarão ativos. Explore-os no Portal do Azure.
 
 ---
 
-### Step 1: Microsoft Foundry Portal
+### Etapa 1: Portal do Microsoft Foundry
 
-1. Go to [Microsoft Foundry Portal](https://ai.azure.com/nextgen) → open your project
-2. Click on the `resolution-advisor-agent` -> **Traces** 
+1. Acesse o [Portal do Microsoft Foundry](https://ai.azure.com/nextgen) → abra seu projeto
+2. Clique em `resolution-advisor-agent` -> **Traces**
 
-   - **Traces panel** — The **Conversations** tab lists every agent run as a row, showing the conversation ID, trace ID, response ID, status, creation time, duration, tokens in/out, estimated cost, evaluation results, and agent version. Use the search box and the **Status**, **Duration**, **Tokens**, and **Estimated Cost** filters (plus the date-range selector) to narrow results, switch to the **Responses** tab for individual model responses, or click **Create dataset** to turn these traces into an evaluation dataset.
+   - **Painel Traces** — A guia **Conversations** lista cada execução de agente como uma linha, mostrando o ID da conversa, o ID do trace, o ID da resposta, o status, o horário de criação, a duração, os tokens de entrada/saída, o custo estimado, os resultados da avaliação e a versão do agente. Use a caixa de pesquisa e os filtros **Status**, **Duration**, **Tokens** e **Estimated Cost** (além do seletor de intervalo de datas) para restringir os resultados, alterne para a guia **Responses** para ver respostas individuais do modelo ou clique em **Create dataset** para transformar esses traces em um conjunto de dados de avaliação.
 
    ![traces](./images/traces.png)
 
-3. You’ll see a list of recent traces — click any row to open it
+3. Você verá uma lista de traces recentes — clique em qualquer linha para abri-la
 
    ![traces2](./images/traces2.png)
 
-4. Inside a trace you can see:
-   - Each **agent turn** as a span (input → output)
-   - **Tool calls** (`lookup_customer`, etc.) as child spans with inputs/outputs
-   - **Token usage** and **latency** per span
-   - The full model prompt and completion if `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true`
-5. Use the **timeline view** to spot slow spans, and the **details panel** to inspect individual messages
-6. Click on the `resolution-advisor-agent` -> **Monitor** 
+4. Dentro de um trace, você pode ver:
+   - Cada **turno do agente** como um span (entrada → saída)
+   - **Chamadas de ferramentas** (`lookup_customer`, etc.) como spans filhos com entradas/saídas
+   - **Uso de tokens** e **latência** por span
+   - O prompt completo do modelo e a conclusão se `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true`
+5. Use a **exibição da linha do tempo** para encontrar spans lentos e o **painel de detalhes** para inspecionar mensagens individuais
+6. Clique em `resolution-advisor-agent` -> **Monitor**
 
-   - **Monitor panel** — The **Overview** tab gives an at-a-glance health summary with cards for **Operational metrics** (estimated cost and total token usage), **Evaluations**, **Scheduled evaluations**, and **Scheduled red teaming run issues**. Below, the **Operational metrics** charts plot **Agent runs** (how often the agent was called) and **Runs and token metrics** (calls vs. tokens consumed) over the selected time range. Use the **Tools** tab, date filters, **Settings**, or **Open in Azure Monitor** for deeper analysis.
+   - **Painel Monitor** — A guia **Overview** oferece um resumo rápido da saúde, com cartões de **Operational metrics** (custo estimado e uso total de tokens), **Evaluations**, **Scheduled evaluations** e **Scheduled red teaming run issues**. Abaixo, os gráficos de **Operational metrics** mostram **Agent runs** (com que frequência o agente foi chamado) e **Runs and token metrics** (chamadas versus tokens consumidos) no intervalo selecionado. Use a guia **Tools**, os filtros de data, **Settings** ou **Open in Azure Monitor** para uma análise mais profunda.
 
    ![monitor2](./images/monitor2.png)
 
-### Step 2 - Application Insights
+### Etapa 2 - Application Insights
 
-1. Go to [portal.azure.com](https://portal.azure.com) → search for **Application Insights** → open `foundry-hack-insights-<suffix>`
-2. Left sidebar → **Investigate** → **Search**
+1. Acesse [portal.azure.com](https://portal.azure.com) → pesquise por **Application Insights** → abra `foundry-hack-insights-<suffix>`
+2. Barra lateral esquerda → **Investigate** → **Search**
 
 ![Application Insights Search](./images/screen22.png)
 
-3. Set the time range to **Last 30 minutes** and click **Search** — you'll see individual trace events
-4. Look for traces where your agents were invoked.
-   You can inspect the timestamp, operation ID, and message payload to confirm calls reached the model.
-5. Click on `Resolution Advisor Agent` instance.
-You will see the **end-to-end transaction trace** showing:
-   - The full agent conversation (user input with call summaries → agent response with resolution recommendations)
-   - Nested spans for each model call with latency breakdowns (e.g., `gpt-5.4-2026-03-05` taking 5.1 seconds)
-   - The exact system prompt and generated reasoning the agent used to reach its conclusion
-   - Resource details (AKS cluster, region) where the agent executed
-   - Any content filtering blockers that violated default Responsible AI standards
-   - This view lets you inspect exactly what the agent "saw" and "reasoned" to understand any misclassifications or performance issues
-6. In the left sidebar → **Investigate** → **Agents (preview)** to open the agent-centric operations dashboard.
+3. Defina o intervalo de tempo como **Last 30 minutes** e clique em **Search** — você verá eventos de trace individuais
+4. Procure traces nos quais seus agentes foram invocados.
+   Você pode inspecionar o carimbo de data e hora, o ID da operação e o payload da mensagem para confirmar que as chamadas chegaram ao modelo.
+5. Clique na instância `Resolution Advisor Agent`.
+Você verá o **trace da transação de ponta a ponta**, mostrando:
+   - A conversa completa do agente (entrada do usuário com resumos de chamadas → resposta do agente com recomendações de resolução)
+   - Spans aninhados para cada chamada de modelo com detalhamento da latência (por exemplo, `gpt-5.4-2026-03-05` levando 5,1 segundos)
+   - O prompt exato do sistema e o raciocínio gerado que o agente usou para chegar à conclusão
+   - Detalhes do recurso (cluster do AKS e região) onde o agente foi executado
+   - Quaisquer bloqueios de filtragem de conteúdo que violaram os padrões padrão de IA Responsável
+   - Essa exibição permite inspecionar exatamente o que o agente "viu" e "raciocinou" para entender classificações incorretas ou problemas de desempenho
+6. Na barra lateral esquerda → **Investigate** → **Agents (preview)** para abrir o dashboard operacional centrado nos agentes.
 ![alt text](./images/agentspane.png)
-   - Use the **Time range** and **Agent** filters at the top to scope the view, switch between the **Dashboard** and **All agents** tabs, or click **Explore in Grafana** for deeper analysis.
-   - **Agent Operational Metrics**:
-     - **Agent Runs** — total invocations broken down per agent (e.g., `resolution-advisor-agent`, `intent-classification-agent`). Click **View Traces with Agent Runs** to jump to the underlying traces.
-     - **Gen AI Errors** — surfaces any traces with GenAI errors in the selected window; a green check means none were found.
-     - **Tool Calls** — a table of each tool (e.g., `multi_tool_use.parallel`) with its error count, average duration, and number of calls, so you can spot slow or failing tools.
-     - **Models** — per-model breakdown (e.g., `gpt-5.4-2026-03-05`, `gpt-5.4`) showing errors, average duration, and call counts.
-   - **Token Consumption**:
-     - **Token Consumption by Model** — total tokens consumed per model (e.g., ~22.1K for `gpt-5.4-2026-03-05`).
-     - **Input vs Output Tokens** — input versus output token totals over time (e.g., 17K input vs 5.1K output), useful for tracking cost drivers.
+    - Use os filtros **Time range** e **Agent** na parte superior para delimitar a exibição, alterne entre as guias **Dashboard** e **All agents** ou clique em **Explore in Grafana** para uma análise mais profunda.
+    - **Métricas operacionais dos agentes**:
+       - **Agent Runs** — total de invocações dividido por agente (por exemplo, `resolution-advisor-agent`, `intent-classification-agent`). Clique em **View Traces with Agent Runs** para acessar os traces subjacentes.
+       - **Gen AI Errors** — mostra traces com erros de GenAI na janela selecionada; uma marca verde significa que nenhum foi encontrado.
+       - **Tool Calls** — uma tabela de cada ferramenta (por exemplo, `multi_tool_use.parallel`) com sua contagem de erros, duração média e número de chamadas, para que você identifique ferramentas lentas ou com falhas.
+       - **Models** — detalhamento por modelo (por exemplo, `gpt-5.4-2026-03-05`, `gpt-5.4`) mostrando erros, duração média e contagem de chamadas.
+    - **Consumo de tokens**:
+       - **Token Consumption by Model** — total de tokens consumidos por modelo (por exemplo, ~22,1K para `gpt-5.4-2026-03-05`).
+       - **Input vs Output Tokens** — totais de tokens de entrada versus saída ao longo do tempo (por exemplo, 17K de entrada versus 5,1K de saída), útil para acompanhar os fatores de custo.
 
 ---
 
-## Success Criteria
+## Critérios de sucesso
 
-- [ ] GenAI tracing is enabled and `monitor.py` ran successfully
-- [ ] You can browse agent traces in the Foundry portal **Traces** view and open a conversation
-- [ ] You can read the **Monitor** panel (agent runs, token usage, estimated cost)
-- [ ] You can see at least one agent trace in Application Insights and open its end-to-end transaction trace
-- [ ] You can use the **Agents (preview)** dashboard to view agent runs, tool calls, models, and token consumption
-- [ ] You understand where to look when an agent misbehaves
+- [ ] O tracing de GenAI está habilitado e `monitor.py` foi executado com sucesso
+- [ ] Você consegue navegar pelos traces dos agentes na exibição **Traces** do portal do Foundry e abrir uma conversa
+- [ ] Você consegue ler o painel **Monitor** (execuções dos agentes, uso de tokens e custo estimado)
+- [ ] Você consegue ver pelo menos um trace de agente no Application Insights e abrir seu trace de transação de ponta a ponta
+- [ ] Você consegue usar o dashboard **Agents (preview)** para visualizar execuções de agentes, chamadas de ferramentas, modelos e consumo de tokens
+- [ ] Você entende onde procurar quando um agente se comporta mal

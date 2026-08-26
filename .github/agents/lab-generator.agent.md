@@ -27,7 +27,9 @@ You are modeled after the TireForge Industries foundry-hackathon lab. You know:
 ├── requirements.txt             # Python dependencies (always the same base set)
 ├── challenge-0-setup/
 │   ├── README.md
-│   └── deploy.sh                # Provisions Azure resources + writes .env
+│   ├── azure.yaml               # azd project definition
+│   ├── infra/main.bicep         # Azure infrastructure
+│   └── scripts/write-env.ps1    # Writes the scenario .env
 ├── challenge-1-build/
 │   ├── README.md
 │   ├── agents.py                # Two agents with system prompts + tool
@@ -80,7 +82,7 @@ Follow the exact code patterns from the reference lab:
 
 - `README.md`: Scenario intro, entity table with statuses, prerequisites, challenge table, architecture diagram
 - `FACILITATOR_GUIDE.md`: Timing guide, reconvene talking points connecting challenges, common errors
-- `deploy.sh`: Same Azure provisioning (AI Foundry project + model + App Insights)
+- `azure.yaml` and `infra/main.bicep`: Azure provisioning (AI Foundry project + model + App Insights)
 - `requirements.txt`: Same Python dependencies
 
 ## Agent Design Patterns
@@ -124,7 +126,7 @@ When generating a lab, produce all files in order:
 3. Domain data JSON
 4. `evaluation_dataset.json`
 5. Each challenge folder's `README.md` + Python file
-6. `deploy.sh`
+6. `azure.yaml` and `infra/main.bicep`
 7. `FACILITATOR_GUIDE.md` last (references all challenges)
 
 Always confirm the use case with the user before generating. Ask if they want any specific twists (e.g., "one entity should have compound failures" or "include a seasonal pattern").

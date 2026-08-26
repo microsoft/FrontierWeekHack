@@ -1,14 +1,14 @@
 <!-- BEGIN MICROSOFT SECURITY.MD V1.0.0 BLOCK -->
 
-## Security
+## Segurança
 
-Microsoft takes the security of our software products and services seriously, which
-includes all source code repositories in our GitHub organizations.
+A Microsoft leva a segurança de seus produtos e serviços de software a sério, o que
+inclui todos os repositórios de código-fonte em suas organizações do GitHub.
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+**Não relate vulnerabilidades de segurança por meio de issues públicas do GitHub.**
 
-For security reporting information, locations, contact information, and policies,
-please review the latest guidance for Microsoft repositories at
+Para obter informações sobre como relatar problemas de segurança, locais, contatos e políticas,
+consulte as orientações mais recentes para repositórios da Microsoft em
 [https://aka.ms/SECURITY.md](https://aka.ms/SECURITY.md).
 
 <!-- END MICROSOFT SECURITY.MD BLOCK -->

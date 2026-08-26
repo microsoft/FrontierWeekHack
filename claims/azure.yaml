@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: claims
+
+infra:
+  provider: bicep
+  path: infra
+
+hooks:
+  postprovision:
+    shell: pwsh
+    run: ./scripts/write-env.ps1

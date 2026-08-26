@@ -1,91 +1,91 @@
-# Challenge 1: Build Agents
+# Desafio 1: Criar Agentes
 
-Time: ~30 minutes
+Tempo: ~30 minutos
 
-## Objectives
+## Objetivos
 
-By the end of this challenge, you will have:
+Ao final deste desafio, você terá:
 
-- ✅ An **Anomaly Detection Agent** that monitors sensor data and flags abnormal readings
-- ✅ A **Fault Diagnosis Agent** that analyzes flagged anomalies and recommends maintenance actions
-- ✅ Both agents tested against real sensor data from the factory floor
+- ✅ Um **Agente de Detecção de Anomalias** que monitora dados de sensores e sinaliza leituras anormais
+- ✅ Um **Agente de Diagnóstico de Falhas** que analisa anomalias sinalizadas e recomenda ações de manutenção
+- ✅ Os dois agentes testados com dados reais de sensores do chão de fábrica
 
 ![build](./images/build.png)
 
-## Context
+## Contexto
 
-TireForge Industries has 5 machines on the production floor. Each machine emits sensor data including temperature, pressure, vibration, and RPM. Your agents need to:
+A TireForge Industries tem 5 máquinas no chão de fábrica. Cada máquina emite dados de sensores, incluindo temperatura, pressão, vibração e RPM. Seus agentes precisam:
 
-1. **Anomaly Detection**: Compare current readings against known thresholds and flag machines that are out of spec
-2. **Fault Diagnosis**: Given an anomaly, reason about what might be wrong and recommend an action
+1. **Detecção de Anomalias**: Comparar as leituras atuais com limites conhecidos e sinalizar máquinas fora das especificações
+2. **Diagnóstico de Falhas**: Dada uma anomalia, raciocinar sobre o que pode estar errado e recomendar uma ação
 
-Check out [sensor_data.json](./sensor_data.json) to see the current state of all machines.
+Consulte [sensor_data.json](./sensor_data.json) para ver o estado atual de todas as máquinas.
 
-## Portal or SDK?
+## Portal ou SDK?
 
-Microsoft Foundry gives you two ways to build agents. The **Foundry portal** ([ai.azure.com/nextgen](https://ai.azure.com/nextgen)) provides a visual, no-code interface where you can create agents, attach tools, and test them interactively in a playground — great for exploration and rapid prototyping. The **Azure AI Agents SDK** gives you full programmatic control: you define agent behavior, tools, and orchestration logic in Python, which makes it easy to version, test, and integrate into automated pipelines.
+O Microsoft Foundry oferece duas maneiras de criar agentes. O **portal do Foundry** ([ai.azure.com/nextgen](https://ai.azure.com/nextgen)) fornece uma interface visual sem código na qual você pode criar agentes, anexar ferramentas e testá-los interativamente em um playground, ideal para exploração e prototipagem rápida. O **SDK de Agentes de IA do Azure** oferece controle programático completo: você define o comportamento dos agentes, as ferramentas e a lógica de orquestração em Python, facilitando o versionamento, os testes e a integração a pipelines automatizados.
 
 ![foundry](./images/foundry.png)
 
-In this challenge we use the **SDK**. The code in [agents.py](./agents.py) creates both agents, registers their tools, and runs them against every machine in `sensor_data.json` — all from the terminal. After the script runs, both agents will also be visible in the portal under **Agents**, so you can inspect them, tweak their instructions, and test them interactively without touching any code.
+Neste desafio usamos o **SDK**. O código em [agents.py](./agents.py) cria os dois agentes, registra suas ferramentas e os executa em cada máquina de `sensor_data.json`, tudo pelo terminal. Depois da execução do script, os dois agentes também estarão visíveis no portal em **Agentes**, para que você possa inspecioná-los, ajustar suas instruções e testá-los interativamente sem tocar no código.
 
-## Agents and Tools
+## Agentes e Ferramentas
 
-### What is an agent?
+### O que é um agente?
 
-An agent in Microsoft Foundry is a persistent, stateful AI assistant backed by a large language model. Unlike a plain API call — where you send a prompt and get a single response — an agent maintains a **conversation thread**, can **invoke tools autonomously**, and **retains context** across multiple turns. You configure it with:
+Um agente no Microsoft Foundry é um assistente de IA persistente e com estado, apoiado por um modelo de linguagem grande. Diferentemente de uma chamada de API simples, na qual você envia um prompt e recebe uma única resposta, um agente mantém uma **thread de conversa**, pode **invocar ferramentas de forma autônoma** e **retém contexto** entre várias interações. Você o configura com:
 
-- A **name** and **model** (e.g. `gpt-5.4`)
-- A **system prompt** — instructions that define its role, personality, and constraints
-- One or more **tools** it can call when it needs information or actions beyond its training data
+- Um **nome** e um **modelo** (por exemplo, `gpt-5.4`)
+- Um **prompt de sistema** — instruções que definem sua função, personalidade e restrições
+- Uma ou mais **ferramentas** que ele pode chamar quando precisa de informações ou ações além dos dados de treinamento
 
-Agents are managed resources in your Foundry project. They persist between runs, appear in the portal under **Agents**, and can be versioned, shared, and reused.
+Os agentes são recursos gerenciados no seu projeto do Foundry. Eles persistem entre execuções, aparecem no portal em **Agentes** e podem ser versionados, compartilhados e reutilizados.
 
-### What are tools?
+### O que são ferramentas?
 
-Tools extend an agent's capabilities beyond pure language generation. When the model decides it needs information it doesn't have in its context window, it emits a **tool call** — a structured JSON request specifying the tool name and arguments. The SDK intercepts this, runs the corresponding Python function, and feeds the result back to the model. This reasoning loop continues until the agent produces a final response.
+As ferramentas ampliam as capacidades de um agente para além da geração de linguagem. Quando o modelo decide que precisa de uma informação que não está na janela de contexto, ele emite uma **chamada de ferramenta**, uma solicitação JSON estruturada que especifica o nome da ferramenta e seus argumentos. O SDK intercepta a chamada, executa a função Python correspondente e devolve o resultado ao modelo. Esse ciclo de raciocínio continua até o agente produzir uma resposta final.
 
-From the model's perspective, tools are described by a **JSON schema** (name, description, parameters). The model reads these descriptions and decides autonomously when and how to call them — you never hard-code the decision logic.
+Do ponto de vista do modelo, as ferramentas são descritas por um **schema JSON** (nome, descrição e parâmetros). O modelo lê essas descrições e decide de forma autônoma quando e como chamá-las; você nunca codifica a lógica de decisão diretamente.
 
-### What tools can you add?
+### Quais ferramentas você pode adicionar?
 
-| Tool type | What it does | Best for |
+| Tipo de ferramenta | O que faz | Melhor para |
 |-----------|-------------|----------|
-| **Function** | Calls a local Python function you define | Any custom logic: database lookups, APIs, calculations |
-| **Code Interpreter** | Lets the agent write and execute Python in a sandbox | Data analysis, chart generation, file processing |
-| **File Search** | Semantic search over a Microsoft Foundry knowledge base | Policy docs, manuals, historical records |
-| **Bing Search** | Live web search | Real-time information, news |
-| **Azure AI Search** | Queries an Azure Search index | Grounded retrieval over your own data at scale |
+| **Função** | Chama uma função Python local definida por você | Qualquer lógica personalizada: consultas a bancos, APIs e cálculos |
+| **Interpretador de Código** | Permite que o agente escreva e execute Python em um sandbox | Análise de dados, geração de gráficos e processamento de arquivos |
+| **Pesquisa de Arquivos** | Pesquisa semântica em uma base de conhecimento do Microsoft Foundry | Documentos de políticas, manuais e registros históricos |
+| **Bing Search** | Pesquisa na web em tempo real | Informações em tempo real e notícias |
+| **Azure AI Search** | Consulta um índice do Azure Search | Recuperação fundamentada dos seus dados em escala |
 
-#### Vector databases and Microsoft Foundry knowledge bases
+#### Bancos de dados vetoriais e bases de conhecimento do Microsoft Foundry
 
-When your agent needs to answer questions grounded in a large body of documents — policy manuals, product specs, historical records — you need a **vector database**. Unlike keyword search, a vector database converts text into numerical embeddings and finds semantically similar passages at query time. This lets the agent ask a natural-language question and retrieve the right content even when the exact words don’t appear in the query.
+Quando seu agente precisa responder a perguntas fundamentadas em um grande volume de documentos, como manuais de políticas, especificações de produtos e registros históricos, você precisa de um **banco de dados vetorial**. Diferentemente da pesquisa por palavras-chave, um banco vetorial converte o texto em embeddings numéricos e encontra trechos semanticamente semelhantes no momento da consulta. Assim, o agente pode fazer uma pergunta em linguagem natural e recuperar o conteúdo correto mesmo quando as palavras exatas não aparecem na consulta.
 
-**Microsoft Foundry** includes a built-in knowledge base backed by a vector store. You upload documents (PDFs, Word files, plain text) and the service automatically chunks, embeds, and indexes them. When you attach this knowledge base to an agent as a **File Search** tool, the agent queries it at inference time — pulling relevant passages into its context before generating a response, so its answers are grounded in your actual documents rather than model training data alone.
+O **Microsoft Foundry** inclui uma base de conhecimento integrada apoiada por um armazenamento vetorial. Você carrega documentos (PDFs, arquivos do Word e texto simples), e o serviço os divide em trechos, gera embeddings e cria o índice automaticamente. Quando você anexa essa base a um agente como ferramenta de **Pesquisa de Arquivos**, o agente a consulta durante a inferência, trazendo trechos relevantes para o contexto antes de gerar uma resposta. Assim, as respostas se baseiam nos seus documentos reais, e não apenas nos dados de treinamento do modelo.
 
-For TireForge Industries, useful knowledge bases would include:
+Para a TireForge Industries, bases de conhecimento úteis incluiriam:
 
-- **Machine maintenance manuals** — repair procedures, lubrication schedules, torque specs, and replacement part numbers for each machine
-- **Historical incident reports** — past failures, their root causes, and the corrective actions that resolved them
-- **Supplier specification sheets** — acceptable operating tolerances, warranty conditions, and recommended sensor thresholds per machine model
+- **Manuais de manutenção das máquinas** — procedimentos de reparo, cronogramas de lubrificação, especificações de torque e números de peças de reposição para cada máquina
+- **Relatórios históricos de incidentes** — falhas anteriores, suas causas raiz e as ações corretivas que as resolveram
+- **Fichas de especificações dos fornecedores** — tolerâncias operacionais aceitáveis, condições de garantia e limites de sensores recomendados por modelo de máquina
 
-With this in place, the **Fault Diagnosis Agent** could query “what are the known failure modes of the CP-003 curing press when vibration exceeds 9.0 mm/s?” and retrieve relevant maintenance history — grounding its recommendation in documented precedent rather than general LLM knowledge.
+Com isso, o **Agente de Diagnóstico de Falhas** poderia consultar "quais são os modos de falha conhecidos da prensa de cura CP-003 quando a vibração excede 9,0 mm/s?" e recuperar o histórico de manutenção relevante, fundamentando sua recomendação em precedentes documentados, e não no conhecimento geral do LLM.
 
-In this challenge the agents use **function tools**. The **Anomaly Detection Agent** uses `check_thresholds` to look up the acceptable operating ranges for each machine and compare them against live sensor readings. Without this tool, the agent would have to reason from memory alone — with it, every threshold check is grounded in actual machine spec data.
+Neste desafio, os agentes usam **ferramentas de função**. O **Agente de Detecção de Anomalias** usa `check_thresholds` para consultar as faixas operacionais aceitáveis de cada máquina e compará-las com as leituras ao vivo dos sensores. Sem essa ferramenta, o agente teria de raciocinar apenas com base na memória; com ela, cada verificação de limite se fundamenta em dados reais das especificações da máquina.
 
-## Get Started
+## Comece Aqui
 
-Open [agents.py](./agents.py) and review the implementation of both agents.
+Abra [agents.py](./agents.py) e examine a implementação dos dois agentes.
 
 ```bash
 cd factory/challenge-1-build
 python agents.py
 ```
 
-As the script runs, watch the terminal closely — you'll see each agent being created, then each machine from `sensor_data.json` being sent through the **Anomaly Detection Agent** first, and its output handed off to the **Fault Diagnosis Agent**. You'll see the raw agent responses printed for every machine, giving you a live view of how the two agents collaborate. Once it completes, head to the [Microsoft Foundry portal](https://ai.azure.com/nextgen), open your project, and navigate to **Agents** in the left sidebar — hit **Refresh** if the agents don't appear immediately, as it can take a few seconds for newly created agents to show up in the portal.
+Enquanto o script é executado, observe o terminal: você verá cada agente sendo criado e, em seguida, cada máquina de `sensor_data.json` passando primeiro pelo **Agente de Detecção de Anomalias**, com sua saída encaminhada ao **Agente de Diagnóstico de Falhas**. As respostas brutas dos agentes serão impressas para cada máquina, oferecendo uma visão ao vivo de como os dois agentes colaboram. Quando terminar, acesse o [portal do Microsoft Foundry](https://ai.azure.com/nextgen), abra seu projeto e navegue até **Agentes** na barra lateral esquerda. Clique em **Atualizar** se os agentes não aparecerem imediatamente, pois pode levar alguns segundos para que agentes recém-criados apareçam no portal.
 
-## Success Criteria
+## Critérios de Sucesso
 
-- [ ] Anomaly Detection Agent correctly identifies the 2 warning + 1 critical machine
-- [ ] Fault Diagnosis Agent provides reasonable maintenance recommendations
-- [ ] Both agents respond coherently when given a machine's sensor readings
+- [ ] O Agente de Detecção de Anomalias identifica corretamente as 2 máquinas em alerta e a 1 crítica
+- [ ] O Agente de Diagnóstico de Falhas fornece recomendações de manutenção razoáveis
+- [ ] Os dois agentes respondem de forma coerente quando recebem as leituras dos sensores de uma máquina

@@ -1,96 +1,96 @@
-# Challenge 3: Evaluate
+# Desafio 3: Avaliar
 
-Time: ~30 minutes
+Tempo: ~30 minutos
 
-## Objectives
+## Objetivos
 
-By the end of this challenge, you will have:
+Ao final deste desafio, você terá:
 
-- ✅ Run a systematic evaluation of your agents against a test dataset
-- ✅ Used built-in evaluators (coherence, fluency) to measure quality
-- ✅ Interpreted evaluation metrics and identified areas for improvement
-- ✅ Understanding of how to integrate evaluations into a CI/CD pipeline
+- ✅ Executado uma avaliação sistemática dos seus agentes com um conjunto de dados de teste
+- ✅ Usado avaliadores integrados (coerência e fluência) para medir a qualidade
+- ✅ Interpretado métricas de avaliação e identificado áreas de melhoria
+- ✅ Compreendido como integrar avaliações a um pipeline de CI/CD
 
 ![evaluate](./images/evaluate.png)
 
-## Context
+## Contexto
 
-Monitoring tells you **what's happening** (latency, errors, token usage). Evaluation tells you **if the classifications are actually correct**.
+O monitoramento informa **o que está acontecendo** (latência, erros e uso de tokens). A avaliação informa **se as classificações estão realmente corretas**.
 
-You have a dataset of 10 test cases — each with a call scenario and the expected correct classification (intent, priority, sentiment, recommended action). You'll run your agents against these test cases and measure how well they perform using LLM-as-judge scoring.
+Você tem um conjunto de dados com 10 casos de teste — cada um com um cenário de chamada e a classificação correta esperada (intenção, prioridade, sentimento e ação recomendada). Você executará seus agentes com esses casos de teste e medirá o desempenho usando pontuação LLM-as-judge.
 
-## Why Evaluate?
+## Por que avaliar?
 
-Monitoring tells you your agents are *running* — evaluation tells you they're doing the *right thing*. These are fundamentally different questions.
+O monitoramento informa que seus agentes estão *executando* — a avaliação informa se estão fazendo a *coisa certa*. São perguntas fundamentalmente diferentes.
 
-Monitoring captures **operational signals**: latency, token count, error rates, uptime. These tell you *how* the system behaves mechanically. Evaluation captures **quality signals**: are the agent's outputs correct, relevant, coherent, and consistent with expected outcomes? These tell you *whether* the system is actually doing its job.
+O monitoramento captura **sinais operacionais**: latência, contagem de tokens, taxas de erro e disponibilidade. Eles informam *como* o sistema se comporta mecanicamente. A avaliação captura **sinais de qualidade**: as saídas do agente são corretas, relevantes, coerentes e consistentes com os resultados esperados? Eles informam *se* o sistema está realmente cumprindo sua função.
 
-Without systematic evaluation, you're relying on spot-checks — reading a handful of responses and judging them subjectively. This doesn't scale, isn't repeatable, and can't catch regressions when you update a prompt or switch models. Evaluation gives you a measurable baseline: a score you can track over time and compare across versions.
+Sem uma avaliação sistemática, você depende de verificações pontuais — lê algumas respostas e as julga subjetivamente. Isso não escala, não é repetível e não detecta regressões quando você atualiza um prompt ou troca de modelo. A avaliação fornece uma linha de base mensurável: uma pontuação que pode ser acompanhada ao longo do tempo e comparada entre versões.
 
-Evaluation also surfaces issues that monitoring is blind to. An agent that always responds quickly and without errors but consistently misclassifies intent — or gives scripted resolutions that don't match the customer's actual situation — looks perfectly healthy to monitoring. Evaluation catches it immediately.
+A avaliação também revela problemas que o monitoramento não consegue detectar. Um agente que sempre responde rapidamente e sem erros, mas classifica intenções de forma incorreta ou fornece resoluções roteirizadas que não correspondem à situação real do cliente, parece perfeitamente saudável para o monitoramento. A avaliação detecta isso imediatamente.
 
-For production AI, evaluations should run:
+Para IA em produção, as avaliações devem ser executadas:
 
-- **Before deployment** — establish a quality baseline and gate releases on minimum scores
-- **After any change** — to system prompts, models, tools, or retrieval data
-- **On a schedule** — to detect drift as the underlying model updates or call patterns shift
+- **Antes da implantação** — estabelecer uma linha de base de qualidade e controlar versões com pontuações mínimas
+- **Depois de qualquer alteração** — em prompts do sistema, modelos, ferramentas ou dados de recuperação
+- **Em uma agenda** — detectar desvios à medida que o modelo subjacente é atualizado ou os padrões de chamadas mudam
 
-For the NovaTel call center specifically: an agent that classifies CALL-007 (suspected account hack) as a billing dispute is dangerous — it's a security incident that needs immediate escalation. Monitoring sees a successful, low-latency response. Only evaluation — comparing the output against the expected classification — catches the mistake.
+Especificamente para a central de atendimento da NovaTel: um agente que classifica a CALL-007 (suspeita de invasão da conta) como uma contestação de cobrança é perigoso — trata-se de um incidente de segurança que precisa ser encaminhado imediatamente. O monitoramento vê uma resposta bem-sucedida e de baixa latência. Somente a avaliação — comparando a saída com a classificação esperada — detecta o erro.
 
-## The Evaluation Dataset
+## O conjunto de dados de avaliação
 
-The dataset lives at [challenge-4-deploy/evaluation_dataset.json](../challenge-4-deploy/evaluation_dataset.json) — it contains:
+O conjunto de dados está em [challenge-4-deploy/evaluation_dataset.json](../challenge-4-deploy/evaluation_dataset.json) — ele contém:
 
-- 10 call scenarios covering all 6 intent types
-- Each has an `input` (call summary you send to the agent)
-- Each has an `expected_output` (the correct classification and action)
+- 10 cenários de chamadas cobrindo os 6 tipos de intenção
+- Cada um tem um `input` (resumo da chamada enviado ao agente)
+- Cada um tem um `expected_output` (a classificação e ação corretas)
 
-## About the Evaluators
+## Sobre os avaliadores
 
-Microsoft Foundry uses an **LLM-as-judge** approach — a separate model reads each agent response alongside the input and ground truth, then scores it on a 1–5 scale. You'll use two built-in evaluators:
+O Microsoft Foundry usa uma abordagem **LLM-as-judge** — um modelo separado lê cada resposta do agente junto com a entrada e a verdade de referência, depois atribui uma pontuação de 1 a 5. Você usará dois avaliadores integrados:
 
-- **Coherence** — measures whether the agent's response is logically structured and internally consistent. A score of 5 means the output is clear, well-organised, and flows naturally. A low score means the response is contradictory, jumbled, or hard to follow. For a call centre agent this catches things like recommending an upsell while simultaneously classifying the intent as a cancellation risk.
+- **Coerência** — mede se a resposta do agente é estruturada logicamente e consistente internamente. Uma pontuação 5 significa que a saída é clara, bem organizada e flui naturalmente. Uma pontuação baixa significa que a resposta é contraditória, confusa ou difícil de acompanhar. Para um agente de central de atendimento, isso detecta situações como recomendar um upsell enquanto classifica simultaneamente a intenção como risco de cancelamento.
 
-- **Fluency** — measures the grammatical and linguistic quality of the agent's response. A score of 5 means the output is well-written, natural, and easy to read. A low score means the response is awkwardly phrased, grammatically broken, or hard to parse — which undermines trust in the classification even when the underlying decision is correct.
+- **Fluência** — mede a qualidade gramatical e linguística da resposta do agente. Uma pontuação 5 significa que a saída é bem escrita, natural e fácil de ler. Uma pontuação baixa significa que a resposta é formulada de maneira estranha, apresenta problemas gramaticais ou é difícil de interpretar — o que reduz a confiança na classificação mesmo quando a decisão subjacente está correta.
 
-These two scores together give you a quick signal on output quality. When you see a low coherence score, look at the agent's system prompt structure. When you see a low fluency score, look at how the agent phrases its output and whether its system prompt encourages clear, well-formed responses.
+Juntas, essas duas pontuações fornecem um sinal rápido da qualidade da saída. Ao ver uma pontuação baixa de coerência, examine a estrutura do prompt do sistema do agente. Ao ver uma pontuação baixa de fluência, observe como o agente formula sua saída e se o prompt do sistema incentiva respostas claras e bem estruturadas.
 
-## Get Started
+## Comece agora
 
-The evaluation dataset has already been prepared for you as [eval_portal.jsonl](./eval_portal.jsonl) — 10 call scenarios ready to upload.
-
----
-
-### Step 1: Open the Evaluation tab
-
-1. Go to the [Microsoft Foundry portal](https://ai.azure.com/nextgen) → your project
-2. On the top bar → **Build** → **Evaluations** → **Create**
-
-### Step 2: Configure the evaluation
-
-3. Select **Agent** as the evaluation target
-4. Choose `intent-classification-agent` from the dropdown
-5. Select **Individual Turns** and then **Existing Dataset**
-6. Click on **Upload new dataset**. You must enter a dataset name first — the upload stays disabled until you do. Type a name (e.g. `callcenter-eval`), then add the file located on `callcenter/challenge-3-evaluate/eval_portal.jsonl` and confirm the upload.
-7. Leave the **Field Mapping** and **Configure Agents** fields as is.
-8. In the **Criteria** step, keep only **Coherence** and **Fluency**. Remove every other evaluator — in particular **deselect Tool Call Accuracy**, since the agents can't execute the local tools during evaluation and will always score low on it. Trimming the evaluator list also makes the run significantly faster.
-9. Leave the Evaluation Name as is or configure to your liking.
-10. Submit your Evaluation. This will take some time to run.
-
-### Step 3: View results
-
-Results appear in the **Evaluate** tab within a few minutes. Click the run name to open the results.
-
-There are two ways to read the results, and they answer different questions:
-
-- **Aggregate metrics** — the average score for each evaluator across all 10 test cases (e.g. an overall Coherence of 4.2). This is your single-number quality baseline — the headline figure you track over time and compare across agent versions.
-- **Per-row analysis** — the score for each individual test case, so you can see *which specific scenarios* dragged the average down. The aggregate tells you *if* there's a problem; the per-row view tells you *where* it is. Sort by the lowest scores to find the cases worth investigating.
+O conjunto de dados de avaliação já foi preparado para você em [eval_portal.jsonl](./eval_portal.jsonl) — são 10 cenários de chamadas prontos para upload.
 
 ---
 
-## Success Criteria
+### Etapa 1: Abrir a guia de avaliação
 
-- [ ] Evaluation runs against all 10 test cases without errors
-- [ ] You can see per-row scores for coherence and fluency
-- [ ] You've identified at least one case where the agent could improve
-- [ ] You understand the difference between aggregate metrics and per-row analysis
+1. Acesse o [portal do Microsoft Foundry](https://ai.azure.com/nextgen) → seu projeto
+2. Na barra superior → **Build** → **Evaluations** → **Create**
+
+### Etapa 2: Configurar a avaliação
+
+3. Selecione **Agent** como destino da avaliação
+4. Escolha `intent-classification-agent` no menu suspenso
+5. Selecione **Individual Turns** e depois **Existing Dataset**
+6. Clique em **Upload new dataset**. Primeiro, você precisa inserir um nome para o conjunto de dados — o upload permanecerá desabilitado até que você faça isso. Digite um nome (por exemplo, `callcenter-eval`), depois adicione o arquivo localizado em `callcenter/challenge-3-evaluate/eval_portal.jsonl` e confirme o upload.
+7. Deixe os campos **Field Mapping** e **Configure Agents** como estão.
+8. Na etapa **Criteria**, mantenha apenas **Coherence** e **Fluency**. Remova todos os outros avaliadores — em especial **desmarque Tool Call Accuracy**, pois os agentes não conseguem executar as ferramentas locais durante a avaliação e sempre terão uma pontuação baixa nesse item. Reduzir a lista de avaliadores também torna a execução significativamente mais rápida.
+9. Mantenha o nome da avaliação como está ou configure-o como preferir.
+10. Envie sua avaliação. A execução levará algum tempo.
+
+### Etapa 3: Ver os resultados
+
+Os resultados aparecem na guia **Evaluate** em alguns minutos. Clique no nome da execução para abrir os resultados.
+
+Há duas maneiras de ler os resultados, e elas respondem a perguntas diferentes:
+
+- **Métricas agregadas** — a pontuação média de cada avaliador nos 10 casos de teste (por exemplo, uma Coerência geral de 4,2). Essa é sua linha de base de qualidade em um único número — o indicador principal que você acompanha ao longo do tempo e compara entre versões dos agentes.
+- **Análise por linha** — a pontuação de cada caso de teste individual, para que você veja *quais cenários específicos* reduziram a média. O agregado informa *se* existe um problema; a exibição por linha informa *onde* ele está. Ordene pelas pontuações mais baixas para encontrar os casos que merecem investigação.
+
+---
+
+## Critérios de sucesso
+
+- [ ] A avaliação é executada nos 10 casos de teste sem erros
+- [ ] Você consegue ver as pontuações por linha de coerência e fluência
+- [ ] Você identificou pelo menos um caso em que o agente pode melhorar
+- [ ] Você entende a diferença entre métricas agregadas e análise por linha

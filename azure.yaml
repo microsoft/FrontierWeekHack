@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: callcenter
+
+metadata:
+  template: callcenter-foundry@1.0
+
+infra:
+  provider: bicep
+  path: infra
+
+hooks:
+  postprovision:
+    shell: pwsh
+    run: ./scripts/write-env.ps1

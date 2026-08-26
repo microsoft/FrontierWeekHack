@@ -1,26 +1,26 @@
-# Challenge 4: Production Workflow
+# Desafio 4: Fluxo de Produção
 
-Time: ~20 minutes
+Tempo: ~20 minutos
 
-Build a multi-agent orchestration workflow for TireForge Industries and take it to production.
+Crie um fluxo de orquestração multiagente para a TireForge Industries e leve-o à produção.
 
-## Scenario
+## Cenário
 
-The individual agents you built in Challenge 1 are valuable — but in production, agents need to work
-**together** as an automated pipeline. In this challenge you wire the two agents into a full
-factory health workflow, run it from code, then build and test it visually in the Foundry portal.
+Os agentes individuais que você criou no Desafio 1 são valiosos, mas em produção os agentes precisam trabalhar
+**juntos** como um pipeline automatizado. Neste desafio, você conectará os dois agentes em um
+fluxo de saúde da fábrica, executá-lo pelo código e depois criá-lo e testá-lo visualmente no portal do Foundry.
 
 ![deploy](./images/deploy.png)
 
-## Learning Objectives
+## Objetivos de Aprendizagem
 
-- Deploy persistent production agents (create once, reuse forever)
-- Orchestrate multiple agents step-by-step in a Python workflow
-- Build the same workflow visually in the Foundry portal
-- Invoke the portal workflow from Python with live streaming
-- View run history and traces in the portal
+- Implantar agentes de produção persistentes (criar uma vez e reutilizar sempre)
+- Orquestrar vários agentes passo a passo em um fluxo Python
+- Criar o mesmo fluxo visualmente no portal do Foundry
+- Invocar o fluxo do portal pelo Python com streaming ao vivo
+- Ver o histórico de execuções e rastreamentos no portal
 
-## The Workflow
+## O Fluxo
 
 ```
 ensure_agents_deployed()
@@ -37,25 +37,25 @@ print_factory_report()      <-- Consolidated Health Report
 
 ---
 
-## Part 1 — SDK: Build and Run the Python Workflow
+## Parte 1 — SDK: Criar e Executar o Fluxo Python
 
-### Step 1: Review the implementation
+### Etapa 1: Examinar a implementação
 
-Open [deploy.py](./deploy.py) and review:
+Abra [deploy.py](./deploy.py) e examine:
 
-- **`ensure_agents_deployed()`** — lists existing agents, creates `anomaly-detection-agent` and `fault-diagnosis-agent` if not present
-- **`run_anomaly_scan()`** — calls the anomaly agent, handles the `check_thresholds` function call loop
-- **`run_fault_diagnosis()`** — calls the diagnosis agent for each affected machine
-- **`run_factory_health_workflow()`** — orchestrates all steps and returns the consolidated report
+- **`ensure_agents_deployed()`** — lista os agentes existentes e cria `anomaly-detection-agent` e `fault-diagnosis-agent` se não estiverem presentes
+- **`run_anomaly_scan()`** — chama o agente de anomalias e trata o loop de chamada da função `check_thresholds`
+- **`run_fault_diagnosis()`** — chama o agente de diagnóstico para cada máquina afetada
+- **`run_factory_health_workflow()`** — orquestra todas as etapas e retorna o relatório consolidado
 
-### Step 2: Run the workflow
+### Etapa 2: Executar o fluxo
 
 ```bash
 cd factory/challenge-4-deploy
 python deploy.py
 ```
 
-Expected output:
+Saída esperada:
 ```
 === Step 1: Ensure Agents Are Deployed ===
   Found existing: anomaly-detection-agent
@@ -80,64 +80,64 @@ TIREFORGE FACTORY HEALTH REPORT
 
 ---
 
-## Part 2 — Portal: Build and Test the Visual Workflow
+## Parte 2 — Portal: Criar e Testar o Fluxo Visual
 
-### Step 3: Verify agents are deployed in the portal
+### Etapa 3: Verificar se os agentes estão implantados no portal
 
-1. Open the [Microsoft Foundry portal](https://ai.azure.com/nextgen)
-2. Select your project
-3. Select **Build** → **Agents** in the top bar
-4. Confirm both agents appear:
+1. Abra o [portal do Microsoft Foundry](https://ai.azure.com/nextgen)
+2. Selecione seu projeto
+3. Selecione **Criar** → **Agentes** na barra superior
+4. Confirme que os dois agentes aparecem:
    - `anomaly-detection-agent`
    - `fault-diagnosis-agent`
 
 
-### Step 4: Build the workflow in the portal designer
+### Etapa 4: Criar o fluxo no designer do portal
 
-1. Select **Build** → **Agents** → **Workflows**
-2. Notice that the workflow created using the SDK in Part 1 is listed. Let's create a new workflow by selecting **Create** → **Blank workflow**
+1. Selecione **Criar** → **Agentes** → **Fluxos de trabalho**
+2. Observe que o fluxo criado usando o SDK na Parte 1 está listado. Crie um novo fluxo selecionando **Criar** → **Fluxo em branco**
 
 ![Create workflow](./images/create-workflow.png)
 
-3. In the visual designer **Add a workflow node** dialog choose **Agent**
+3. No designer visual, na caixa de diálogo **Adicionar um nó de fluxo**, escolha **Agente**
 
    ![add agent](./images/add-agent.png)
 
-4. In the **Select an agent** picker select `anomaly-detection-agent`
+4. No seletor **Selecionar um agente**, selecione `anomaly-detection-agent`
 
    ![select agent](./images/select-agent.png)
 
-5. In the **Next node** picker select **Agent** and click **Done** button
+5. No seletor **Próximo nó**, selecione **Agente** e clique no botão **Concluído**
    \
     ![next node agent](./images/next-node-agent.png)
 
-6. Select the new agent node in the canvas and in the **Select and agent** picker select `fault-diagnosis-agent`
+6. Selecione o novo nó de agente na tela e, no seletor **Selecionar um agente**, selecione `fault-diagnosis-agent`
 
    ![select agent 2](./images/select-agent-2.png) 
 
-7. In the **Next node** picker select **End** and click **Done** button
+7. No seletor **Próximo nó**, selecione **Fim** e clique no botão **Concluído**
 
     ![end node](./images/end-node.png) 
 
-8. Select **Save** and name it `factory-health-workflow-portal`
+8. Selecione **Salvar** e dê a ele o nome `factory-health-workflow-portal`
 
 ![Save agent](./images/save-agent.png) 
 
-### Step 5: Test the workflow in the portal playground
+### Etapa 5: Testar o fluxo no playground do portal
 
-> **Why you must include the sensor data in your message**
+> **Por que você deve incluir os dados dos sensores na mensagem**
 >
-> The agents use a `check_thresholds` tool that reads from a local Python file.
-> The portal playground **cannot execute Python functions** — if you send a generic
-> prompt, the agent will try to call the tool and stall waiting for a result that
-> never arrives. Paste the sensor readings directly into your message so the agents
-> can work without needing the tool.
+> Os agentes usam uma ferramenta `check_thresholds` que lê um arquivo Python local.
+> O playground do portal **não consegue executar funções Python**; se você enviar um prompt
+> genérico, o agente tentará chamar a ferramenta e ficará aguardando um resultado que nunca
+> chegará. Cole as leituras dos sensores diretamente na mensagem para que os agentes
+> possam trabalhar sem precisar da ferramenta.
 
-1. In the **factory-health-workflow-portal** workflow canvas select **Preview**
+1. Na tela do fluxo **factory-health-workflow-portal**, selecione **Visualizar**
 
 ![Preview Agent](./images/preview-agent.png) 
 
-2. Paste the following message (data is pre-embedded so no tool calls are needed):
+2. Cole a mensagem a seguir (os dados já estão incorporados, portanto não são necessárias chamadas de ferramentas):
 
    ```
    All sensor readings for today are below — analyse them directly, do not call check_thresholds.
@@ -175,52 +175,52 @@ TIREFORGE FACTORY HEALTH REPORT
    Detect all anomalies, then diagnose root causes and recommend remediation for affected machines.
    ```
 
-3. Watch the steps execute in sequence — anomaly scan first, then fault diagnosis
-4. Review the final consolidated report
+3. Observe as etapas serem executadas em sequência: primeiro a varredura de anomalias e depois o diagnóstico de falhas
+4. Examine o relatório consolidado final
 
 
-### Step 6: View run history and traces
+### Etapa 6: Ver o histórico de execuções e rastreamentos
 
-1. In the **factory-health-workflow-portal** workflow click **Traces** 
+1. No fluxo **factory-health-workflow-portal**, clique em **Rastreamentos**
 
 ![Workflow Traces](./images/workflow-traces.png) 
 
-2. Click the latest run to see the execution timeline — each step, duration, and output
+2. Clique na execução mais recente para ver a linha do tempo, cada etapa, duração e saída
 
 
 ---
 
-## Success Criteria
+## Critérios de Sucesso
 
-- [ ] Python workflow runs end-to-end: anomaly scan → diagnosis → factory health report
-- [ ] Both agents visible in the Foundry portal as persistent assets
-- [ ] Visual workflow created in the portal and tested in its playground
+- [ ] O fluxo Python é executado de ponta a ponta: varredura de anomalias → diagnóstico → relatório da saúde da fábrica
+- [ ] Os dois agentes estão visíveis no portal do Foundry como ativos persistentes
+- [ ] O fluxo visual foi criado no portal e testado em seu playground
 
 ---
 
-## Beyond the Lab: Production Deployment Options
+## Além do Laboratório: Opções de Implantação em Produção
 
-You've built and tested your agents locally. Here's how to take them to production:
+Você criou e testou seus agentes localmente. Veja como levá-los à produção:
 
-### Option 1: Hosted Agents (What You Already Have)
+### Opção 1: Agentes Hospedados (o que você já tem)
 
-Your agents created with `agents.create_version()` are already production-ready hosted agents. They live in Foundry indefinitely — any client can invoke them by name via the Responses API. No infrastructure to manage; Foundry handles scaling, versioning, and availability.
+Seus agentes criados com `agents.create_version()` já são agentes hospedados prontos para produção. Eles permanecem no Foundry indefinidamente; qualquer cliente pode invocá-los pelo nome usando a Responses API. Não há infraestrutura para gerenciar: o Foundry cuida do dimensionamento, versionamento e disponibilidade.
 
-- **Versioning**: Each `create_version()` produces an immutable version. Roll back by referencing an older version.
-- **Multi-tenant**: Multiple users/apps can call the same agent simultaneously.
-- **Portal visibility**: Agents appear under Build → Agents with playground, run history, and tracing.
+- **Versionamento**: Cada `create_version()` produz uma versão imutável. Reverta referenciando uma versão anterior.
+- **Multi-inquilino**: Vários usuários/aplicativos podem chamar o mesmo agente simultaneamente.
+- **Visibilidade no portal**: Os agentes aparecem em Criar → Agentes com playground, histórico de execuções e rastreamento.
 
-### Option 2: Foundry Workflows (Visual Orchestration)
+### Opção 2: Fluxos do Foundry (Orquestração Visual)
 
-What you built in Part 2 — wire multiple hosted agents into a DAG using the portal designer. The workflow becomes a deployable agent invoked via the same Responses API.
+O que você criou na Parte 2: conecte vários agentes hospedados em um DAG usando o designer do portal. O fluxo se torna um agente implantável, invocado pela mesma Responses API.
 
-- Step sequencing with automatic output passing
-- Streaming `workflow_action` events showing progress
-- Run history with per-step timing
+- Sequenciamento de etapas com passagem automática de saída
+- Streaming de eventos `workflow_action` mostrando o progresso
+- Histórico de execuções com tempo por etapa
 
-### Option 3: Azure App Service / Container Apps
+### Opção 3: Azure App Service / Container Apps
 
-Wrap your Python workflow in a FastAPI/Flask app for custom middleware, auth, or business logic:
+Envolva seu fluxo Python em um aplicativo FastAPI/Flask para obter middleware personalizado, autenticação ou lógica de negócio:
 
 ```python
 # Example: FastAPI endpoint that calls your Foundry agents
@@ -230,32 +230,32 @@ async def health_check():
     return report
 ```
 
-Deploy to **App Service** (managed PaaS) or **Container Apps** (auto-scaling containers).
+Implante no **App Service** (PaaS gerenciado) ou no **Container Apps** (contêineres com dimensionamento automático).
 
-### Option 4: Azure Functions (Event-Driven)
+### Opção 4: Azure Functions (Orientado a Eventos)
 
-Trigger agent workflows from events:
+Acione fluxos de agentes a partir de eventos:
 
-- **Timer trigger**: Run the factory health check every hour
-- **Service Bus trigger**: Process each anomaly alert as it arrives from IoT Hub
-- **HTTP trigger**: On-demand endpoint for maintenance teams
+- **Gatilho de timer**: Execute a verificação da saúde da fábrica a cada hora
+- **Gatilho do Service Bus**: Processe cada alerta de anomalia assim que chegar do IoT Hub
+- **Gatilho HTTP**: Endpoint sob demanda para as equipes de manutenção
 
-Pay-per-execution, scales to zero when idle.
+Pagamento por execução, com redução para zero quando ocioso.
 
-### Option 5: CI/CD Quality Gates
+### Opção 5: Gates de Qualidade de CI/CD
 
-Integrate evaluation into your deployment pipeline:
+Integre a avaliação ao seu pipeline de implantação:
 
-- Run `evaluate.py` on every PR — block merge if quality drops below threshold
-- Promote agent versions: `v1-dev` → `v1-staging` → `v1-prod` after evaluation passes
-- Blue/green: Deploy new version to 10% traffic, compare metrics, then promote
+- Execute `evaluate.py` em cada PR; bloqueie o merge se a qualidade ficar abaixo do limite
+- Promova versões dos agentes: `v1-dev` → `v1-staging` → `v1-prod` depois que a avaliação for aprovada
+- Blue/green: implante a nova versão para 10% do tráfego, compare as métricas e depois promova-a
 
-### Summary
+### Resumo
 
-| Pattern | Best For |
+| Padrão | Melhor para |
 |---------|----------|
-| Hosted Agents | Always-on, invoke by name, no infra management |
-| Foundry Workflows | Multi-agent orchestration without code |
-| App Service / Containers | Custom auth, middleware, webhooks |
-| Azure Functions | Event-driven, pay-per-use, IoT integration |
-| CI/CD Gates | Automated quality assurance before promotion |
+| Agentes hospedados | Sempre ativos, invocação por nome e sem gerenciamento de infraestrutura |
+| Fluxos do Foundry | Orquestração multiagente sem código |
+| App Service / Contêineres | Autenticação personalizada, middleware e webhooks |
+| Azure Functions | Orientado a eventos, pagamento por uso e integração com IoT |
+| Gates de CI/CD | Garantia de qualidade automatizada antes da promoção |
