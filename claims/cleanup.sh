@@ -7,7 +7,7 @@ set -euo pipefail
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="$SCRIPT_DIR/challenge-0-setup/.env"
+ENV_FILE="$SCRIPT_DIR/.env"
 
 # Load .env if it exists
 if [[ -f "$ENV_FILE" ]]; then
@@ -16,7 +16,7 @@ if [[ -f "$ENV_FILE" ]]; then
   echo "Loaded environment from: $ENV_FILE"
 else
   echo "Warning: .env file not found at $ENV_FILE"
-  echo "Set RESOURCE_GROUP manually or re-run challenge-0-setup/deploy.sh first."
+  echo "Set RESOURCE_GROUP manually, or re-run challenge-0-setup/deploy.sh to write claims/.env."
 fi
 
 RESOURCE_GROUP="${RESOURCE_GROUP:-}"
